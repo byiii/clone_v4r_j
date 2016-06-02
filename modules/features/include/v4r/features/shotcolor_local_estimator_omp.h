@@ -5,8 +5,8 @@
  *      Author: aitor
  */
 
-#ifndef V4R_SHOT_LOCAL_ESTIMATOR_OMP_H_
-#define V4R_SHOT_LOCAL_ESTIMATOR_OMP_H_
+#ifndef V4R_SHOTCOLOR_LOCAL_ESTIMATOR_OMP_H_
+#define V4R_SHOTCOLOR_LOCAL_ESTIMATOR_OMP_H_
 
 #include "local_estimator.h"
 #include <pcl/features/shot_omp.h>
@@ -17,7 +17,7 @@
 namespace v4r
 {
     template<typename PointT>
-      class V4R_EXPORTS SHOTLocalEstimationOMP : public LocalEstimator<PointT>
+      class V4R_EXPORTS SHOTColorLocalEstimationOMP : public LocalEstimator<PointT>
       {
         typedef typename pcl::PointCloud<PointT>::Ptr PointInTPtr;
         typedef pcl::PointCloud<pcl::PointXYZ> KeypointCloud;
@@ -40,9 +40,9 @@ namespace v4r
             {}
         }param_;
 
-        SHOTLocalEstimationOMP (const Parameter &p = Parameter()) : LocalEstimator<PointT>(p)
+        SHOTColorLocalEstimationOMP (const Parameter &p = Parameter()) : LocalEstimator<PointT>(p)
         {
-            this->descr_name_ = "shot_omp";
+            this->descr_name_ = "shot_color_omp";
             param_ = p;
         }
 
@@ -63,7 +63,10 @@ namespace v4r
         }
 
         bool
-        estimate (const pcl::PointCloud<PointT> & in, pcl::PointCloud<PointT> & processed, pcl::PointCloud<PointT> & keypoints, std::vector<std::vector<float> > & signatures);
+        estimate (const pcl::PointCloud<PointT> & in,
+                  pcl::PointCloud<PointT> & processed,
+                  pcl::PointCloud<PointT> & keypoints,
+                  std::vector<std::vector<float> > & signatures);
 
         bool
         needNormals ()
@@ -73,4 +76,4 @@ namespace v4r
       };
 }
 
-#endif /* V4R_SHOT_LOCAL_ESTIMATOR_OMP_H_ */
+#endif /* V4R_SHOTCOLOR_LOCAL_ESTIMATOR_OMP_H_ */

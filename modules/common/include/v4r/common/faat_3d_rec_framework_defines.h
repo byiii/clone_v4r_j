@@ -25,4 +25,12 @@ POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::Histogram<128>,
     (float[128], histogram, histogramSIFT)
 )
 
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::Histogram<64>,
+    (float[64], histogram, histogramBRISK)
+)
+
+POINT_CLOUD_REGISTER_POINT_STRUCT (pcl::Histogram<33>,
+    (float[33], histogram, histogramFPFH)
+)
+
 #endif

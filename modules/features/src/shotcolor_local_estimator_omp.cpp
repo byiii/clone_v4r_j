@@ -1,16 +1,21 @@
-#include <v4r/features/shot_local_estimator_omp.h>
+#include <v4r/features/shotcolor_local_estimator_omp.h>
 
 namespace v4r
 {
 
 template<typename PointT>
 bool
-SHOTLocalEstimationOMP<PointT>::estimate (const pcl::PointCloud<PointT> & in, pcl::PointCloud<PointT> & processed, pcl::PointCloud<PointT> & keypoints, std::vector<std::vector<float> > & signatures)
+SHOTColorLocalEstimationOMP<PointT>::estimate (const pcl::PointCloud<PointT> & in,
+                                               pcl::PointCloud<PointT> & processed,
+                                               pcl::PointCloud<PointT> & keypoints,
+                                               std::vector<std::vector<float> > & signatures)
 {
     (void) processed;
 
     if ( keypoint_extractor_.empty() || in.points.empty())
-        throw std::runtime_error("SHOTLocalEstimationOMP :: This feature needs a keypoint extractor and a non-empty input point cloud... please provide one");
+        throw std::runtime_error("SHOTColorLocalEstimationOMP :: This feature needs a "
+                                 "keypoint extractor and a non-empty input point cloud... "
+                                 "please provide one");
 
 
     //    if( !indices_.indices.empty() )
@@ -57,7 +62,8 @@ SHOTLocalEstimationOMP<PointT>::estimate (const pcl::PointCloud<PointT> & in, pc
         return false;
     }
 
-    //  uniform_kp_extractor->setMaxDistance( 1000.0 ); // for training we want to consider all points (except nan values)
+    // for training we want to consider all points (except nan values)
+    //  uniform_kp_extractor->setMaxDistance( 1000.0 );
 
     // filter inite points and normals before describing keypoint
 
@@ -81,12 +87,12 @@ SHOTLocalEstimationOMP<PointT>::estimate (const pcl::PointCloud<PointT> & in, pc
     cloud_filtered->width = normals_filtered->width = kept;
 
     //compute signatures
-    typedef typename pcl::SHOTEstimationOMP<PointT, pcl::Normal, pcl::SHOT352> SHOTEstimator;
+    typedef typename pcl::SHOTColorEstimationOMP<PointT, pcl::Normal, pcl::SHOT1344> SHOTColorEstimator;
     typename pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
     tree->setInputCloud (cloud_filtered);
 
-    pcl::PointCloud<pcl::SHOT352>::Ptr shots (new pcl::PointCloud<pcl::SHOT352>);
-    SHOTEstimator shot_estimate;
+    pcl::PointCloud<pcl::SHOT1344>::Ptr shots (new pcl::PointCloud<pcl::SHOT1344>);
+    SHOTColorEstimator shot_estimate;
     shot_estimate.setNumberOfThreads (0);
     shot_estimate.setSearchMethod (tree);
     shot_estimate.setInputCloud (keypoints.makeShared());
@@ -95,8 +101,8 @@ SHOTLocalEstimationOMP<PointT>::estimate (const pcl::PointCloud<PointT> & in, pc
     shot_estimate.setRadiusSearch (param_.support_radius_);
     shot_estimate.compute (*shots);
 
-    int size_feat = 352;
-    signatures.resize (shots->points.size (), std::vector<float>(352));
+    int size_feat = 1344;
+    signatures.resize (shots->points.size (), std::vector<float>(1344));
 
     kept = 0;
     for (size_t k = 0; k < shots->points.size (); k++)
@@ -133,8 +139,8 @@ SHOTLocalEstimationOMP<PointT>::estimate (const pcl::PointCloud<PointT> & in, pc
     return true;
 }
 
-template class V4R_EXPORTS SHOTLocalEstimationOMP<pcl::PointXYZ>;
-template class V4R_EXPORTS SHOTLocalEstimationOMP<pcl::PointXYZRGB>;
+template class V4R_EXPORTS SHOTColorLocalEstimationOMP<pcl::PointXYZRGB>;
+//template class V4R_EXPORTS SHOTColorLocalEstimationOMP<pcl::PointXYZRGBA>;
 
 }
 

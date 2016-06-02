@@ -1,4 +1,5 @@
 if(WITH_PCL)
+  #set(PCL_DIR /home/jyi/Devel/pcl/share/pcl-1.8)
   find_package(PCL "${MIN_VER_PCL}")
   if(PCL_FOUND)
     set(HAVE_PCL TRUE)

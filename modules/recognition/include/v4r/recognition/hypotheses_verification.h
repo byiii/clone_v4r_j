@@ -47,44 +47,64 @@
 namespace v4r
 {
 
-  /**
+/**
    * \brief Abstract class for hypotheses verification methods
    * \author Aitor Aldoma, Federico Tombari
    */
-  template<typename ModelT, typename SceneT>
-  class V4R_EXPORTS HypothesisVerification
-  {
-  public:
-      class V4R_EXPORTS Parameter
-      {
-      public:
-          double resolution_; /// @brief The resolution of models and scene used to verify hypotheses (in meters)
-          double inliers_threshold_; /// @brief Represents the maximum distance between model and scene points in order to state that a scene point is explained by a model point. Valid model points that do not have any corresponding scene point within this threshold are considered model outliers
-          double occlusion_thres_;    /// @brief Threshold for a point to be considered occluded when model points are back-projected to the scene ( depends e.g. on sensor noise)
-          int zbuffer_scene_resolution_; /// @brief Resolutions in pixel for the depth scene buffer
-          int zbuffer_self_occlusion_resolution_;
-          bool self_occlusions_reasoning_;
-          double focal_length_; /// @brief defines the focal length used for back-projecting points to the image plane (used for occlusion / visibility reasoning)
+template<typename ModelT, typename SceneT>
+class V4R_EXPORTS HypothesisVerification
+{
+public:
+    class V4R_EXPORTS Parameter
+    {
+    public:
+        ///
+        /// @brief The resolution of models and scene used to verify hypotheses (in meters)
+        ///
+        double resolution_;
+        ///
+        /// @brief Represents the maximum distance between model and scene
+        /// points in order to state that a scene point is explained by a model
+        /// point. Valid model points that do not have any corresponding scene
+        /// point within this threshold are considered model outliers
+        ///
+        double inliers_threshold_;
+        ///
+        /// @brief Threshold for a point to be considered occluded when
+        /// model points are back-projected to the scene ( depends e.g. on sensor noise)
+        ///
+        double occlusion_thres_;
+        ///
+        /// @brief Resolutions in pixel for the depth scene buffer
+        ///
+        int zbuffer_scene_resolution_;
+        int zbuffer_self_occlusion_resolution_;
+        bool self_occlusions_reasoning_;
+        ///
+        /// @brief defines the focal length used for back-projecting points to
+        /// the image plane (used for occlusion / visibility reasoning)
+        ///
+        double focal_length_;
 
-          Parameter (
-                  double resolution = 0.005f,
-                  double inliers_threshold = 0.015f, // 0.005f
-                  double occlusion_thres = 0.02f, // 0.005f
-                  int zbuffer_scene_resolution = 100,
-                  int zbuffer_self_occlusion_resolution = 250,
-                  bool self_occlusions_reasoning = true,
-                  double focal_length = 525.f)
-              : resolution_ (resolution),
-                inliers_threshold_(inliers_threshold),
-                occlusion_thres_ (occlusion_thres),
-                zbuffer_scene_resolution_(zbuffer_scene_resolution),
-                zbuffer_self_occlusion_resolution_(zbuffer_self_occlusion_resolution),
-                self_occlusions_reasoning_(self_occlusions_reasoning),
-                focal_length_ (focal_length)
-          {}
-      }param_;
+        Parameter (
+                double resolution = 0.005f,
+                double inliers_threshold = 0.015f, // 0.005f
+                double occlusion_thres = 0.02f, // 0.005f
+                int zbuffer_scene_resolution = 100,
+                int zbuffer_self_occlusion_resolution = 250,
+                bool self_occlusions_reasoning = true,
+                double focal_length = 525.f)
+            : resolution_ (resolution),
+              inliers_threshold_(inliers_threshold),
+              occlusion_thres_ (occlusion_thres),
+              zbuffer_scene_resolution_(zbuffer_scene_resolution),
+              zbuffer_self_occlusion_resolution_(zbuffer_self_occlusion_resolution),
+              self_occlusions_reasoning_(self_occlusions_reasoning),
+              focal_length_ (focal_length)
+        {}
+    }param_;
 
-  protected:
+protected:
     /**
      * @brief Boolean vector indicating if a hypothesis is accepted/rejected (output of HV stage)
      */
@@ -105,7 +125,7 @@ namespace v4r
     /**
      * \brief Downsampled scene point cloud
      */
-     typename pcl::PointCloud<SceneT>::Ptr scene_cloud_downsampled_;
+    typename pcl::PointCloud<SceneT>::Ptr scene_cloud_downsampled_;
 
     /**
      * \brief Scene tree of the downsampled cloud
@@ -114,8 +134,8 @@ namespace v4r
 
     /**
      * \brief Vector of point clouds representing the 3D models after occlusion reasoning
-	 * the 3D models are pruned of occluded points, and only visible points are left. 
-	 * the coordinate system is that of the scene cloud
+     * the 3D models are pruned of occluded points, and only visible points are left.
+     * the coordinate system is that of the scene cloud
      */
     typename std::vector<typename pcl::PointCloud<ModelT>::Ptr> visible_models_;
     std::vector<typename pcl::PointCloud<pcl::Normal>::Ptr> visible_normal_models_;
@@ -134,17 +154,17 @@ namespace v4r
 
     std::vector<int> scene_sampled_indices_;
 
-  public:
+public:
     HypothesisVerification (const Parameter &p = Parameter()) : param_(p)
     {
-      occlusion_cloud_set_ = false;
-      normals_set_ = false;
-      requires_normals_ = false;
+        occlusion_cloud_set_ = false;
+        normals_set_ = false;
+        requires_normals_ = false;
     }
 
     bool getRequiresNormals()
     {
-      return requires_normals_;
+        return requires_normals_;
     }
 
     float getResolution() const
@@ -159,7 +179,7 @@ namespace v4r
     void
     getMask (std::vector<bool> & mask)
     {
-      mask = mask_;
+        mask = mask_;
     }
 
     /**
@@ -170,8 +190,8 @@ namespace v4r
     void
     addNormalsClouds (std::vector<pcl::PointCloud<pcl::Normal>::ConstPtr> & complete_models)
     {
-      complete_normal_models_ = complete_models;
-      normals_set_ = true;
+        complete_normal_models_ = complete_models;
+        normals_set_ = true;
     }
 
     /**
@@ -192,8 +212,8 @@ namespace v4r
 
     void setOcclusionCloud (const typename pcl::PointCloud<SceneT>::Ptr & occ_cloud)
     {
-      occlusion_cloud_ = occ_cloud;
-      occlusion_cloud_set_ = true;
+        occlusion_cloud_ = occ_cloud;
+        occlusion_cloud_set_ = true;
     }
 
     /**
@@ -201,7 +221,7 @@ namespace v4r
      *  This function modifies the values of mask_ and needs to be called after both scene and model have been added
      */
     virtual void verify() = 0;
-  };
+};
 
 }
 

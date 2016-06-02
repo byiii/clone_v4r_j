@@ -87,8 +87,8 @@ MultiviewRecognizer<PointT>::pruneGraph ()
 
         typename std::map<size_t, View<PointT> >::const_iterator view_it;
         for (view_it = views_.begin(); view_it != views_.end(); ++view_it) {
-             if( view_it->first < lowest_vertex_id)
-                 lowest_vertex_id = view_it->first;
+            if( view_it->first < lowest_vertex_id)
+                lowest_vertex_id = view_it->first;
         }
 
         views_.erase(lowest_vertex_id);
@@ -98,7 +98,9 @@ MultiviewRecognizer<PointT>::pruneGraph ()
             for (vp = vertices(gs_); vp.first != vp.second; ++vp.first) {
                 if (gs_[*vp.first] == lowest_vertex_id) {
                     clear_vertex(*vp.first, gs_);
-                    remove_vertex(*vp.first, gs_); // iterator might be invalidated but we stop anyway
+
+                    // iterator might be invalidated but we stop anyway
+                    remove_vertex(*vp.first, gs_);
                     break;
                 }
             }
@@ -115,7 +117,8 @@ MultiviewRecognizer<PointT>::computeAbsolutePose(CamConnect &e, bool is_first_ed
     View<PointT> &src_tmp = views_[src];
     View<PointT> &trgt_tmp = views_[trgt];
 
-    std::cout << "[" << src << "->" << trgt << "] with weight " << e.edge_weight_ << " by " << e.model_name_ << std::endl;
+    std::cout << "[" << src << "->" << trgt << "] with weight " << e.edge_weight_
+              << " by " << e.model_name_ << std::endl;
 
     if (is_first_edge) {
         src_tmp.has_been_hopped_ = true;
@@ -147,7 +150,9 @@ void
 MultiviewRecognizer<PointT>::recognize ()
 {
     if(!rr_)
-        throw std::runtime_error("Single-View recognizer is not set. Please provide a recognizer to the multi-view recognition system!");
+        throw std::runtime_error("Single-View recognizer is not set. Please "
+                                 "provide a recognizer to the multi-view "
+                                 "recognition system!");
 
     std::cout << "=================================================================" << std::endl <<
                  "Started recognition for view " << id_ << " in scene " << scene_name_ <<
@@ -156,7 +161,9 @@ MultiviewRecognizer<PointT>::recognize ()
     boost::shared_ptr< pcl::PointCloud<pcl::Normal> > scene_normals_f (new pcl::PointCloud<pcl::Normal> );
 
     if (!scene_ || scene_->width != 640 || scene_->height != 480)
-        throw std::runtime_error("Size of input cloud is not 640x480, which is the only resolution currently supported by the verification framework.");
+        throw std::runtime_error("Size of input cloud is not 640x480, "
+                                 "which is the only resolution currently "
+                                 "supported by the verification framework.");
 
     View<PointT> vv;
     views_[id_] = vv;
@@ -179,16 +186,17 @@ MultiviewRecognizer<PointT>::recognize ()
         }
     }
     else {
-//        v.scene_f_ = v.scene_;
+        //        v.scene_f_ = v.scene_;
         scene_normals_f = v.scene_normals_;
     }
 
 
     if (param_.compute_mst_) {
-        if( param_.scene_to_scene_) {   // compute SIFT keypoints for the scene (since neighborhood of keypoint
-                                        // matters for their SIFT descriptors, the descriptors are computed on the
-                                        // original rather than on the filtered point cloud. Keypoints at infinity
-                                        // are removed.
+        if( param_.scene_to_scene_)
+        {   // compute SIFT keypoints for the scene (since neighborhood of keypoint
+            // matters for their SIFT descriptors, the descriptors are computed on the
+            // original rather than on the filtered point cloud. Keypoints at infinity
+            // are removed.
             typename pcl::PointCloud<PointT> sift_keypoints;
             std::vector<int> sift_kp_indices;
             std::vector<std::vector<float> > sift_signatures;
@@ -198,19 +206,19 @@ MultiviewRecognizer<PointT>::recognize ()
 
             v.sift_kp_indices_.reserve( sift_kp_indices.size() );
             v.sift_signatures_.reserve( sift_signatures.size() );
-//            v.sift_keypoints_scales_.reserve( sift_keypoints_scales.size() );
+            //            v.sift_keypoints_scales_.reserve( sift_keypoints_scales.size() );
             size_t kept=0;
             for (size_t i=0; i<sift_kp_indices.size(); i++) {   // remove infinte keypoints
                 if ( pcl::isFinite( v.scene_->points[sift_kp_indices[i]] ) ) {
                     v.sift_kp_indices_.push_back( sift_kp_indices[i] );
                     v.sift_signatures_.push_back( sift_signatures[i] );
-//                    v.sift_keypoints_scales_.push_back( sift_keypoints_scales[i] );
+                    //                    v.sift_keypoints_scales_.push_back( sift_keypoints_scales[i] );
                     kept++;
                 }
             }
             v.sift_kp_indices_.shrink_to_fit();
             v.sift_signatures_.shrink_to_fit();
-//            v.sift_keypoints_scales_.shrink_to_fit();
+            //            v.sift_keypoints_scales_.shrink_to_fit();
             std::cout << "keypoints: " << v.sift_kp_indices_.size() << std::endl;
 
             // In addition to matching views, we can use the computed SIFT features for recognition
@@ -274,7 +282,10 @@ MultiviewRecognizer<PointT>::recognize ()
                     }
                     catch (int e) {
                         e_tmp.edge_weight_ = std::numeric_limits<float>::max();
-                        std::cerr << "Something is wrong with the SIFT based camera pose estimation. Turning it off and using the given camera poses only." << std::endl;
+                        std::cerr << "Something is wrong with the SIFT based "
+                                     "camera pose estimation. Turning it off "
+                                     "and using the given camera poses only."
+                                  << std::endl;
                         continue;
                     }
                 }
@@ -330,25 +341,28 @@ MultiviewRecognizer<PointT>::recognize ()
         }
     }
 
-//    if(views_.size()>1) {
-//        typename pcl::PointCloud<PointT>::Ptr registration_check (new pcl::PointCloud<PointT>);
-//        typename std::map<size_t, View<PointT> >::const_iterator view_it;
-//        for (view_it = views_.begin(); view_it != views_.end(); ++view_it) {   // merge feature correspondences
-//            const View<PointT> &w = view_it->second;
-//            typename pcl::PointCloud<PointT>::Ptr cloud_tmp (new pcl::PointCloud<PointT>);
-//            pcl::transformPointCloud(*w.scene_, *cloud_tmp, w.absolute_pose_);
-//            *registration_check += *cloud_tmp;
-//        }
-//        pcl::visualization::PCLVisualizer registration_vis("registration_check");
-//        registration_vis.addPointCloud(registration_check);
-//        registration_vis.spin();
-//    }
+    //    if(views_.size()>1) {
+    //        typename pcl::PointCloud<PointT>::Ptr registration_check (new pcl::PointCloud<PointT>);
+    //        typename std::map<size_t, View<PointT> >::const_iterator view_it;
+    //        for (view_it = views_.begin(); view_it != views_.end(); ++view_it) {   // merge feature correspondences
+    //            const View<PointT> &w = view_it->second;
+    //            typename pcl::PointCloud<PointT>::Ptr cloud_tmp (new pcl::PointCloud<PointT>);
+    //            pcl::transformPointCloud(*w.scene_, *cloud_tmp, w.absolute_pose_);
+    //            *registration_check += *cloud_tmp;
+    //        }
+    //        pcl::visualization::PCLVisualizer registration_vis("registration_check");
+    //        registration_vis.addPointCloud(registration_check);
+    //        registration_vis.spin();
+    //    }
 
     rr_->setInputCloud(v.scene_);
     rr_->setSceneNormals(v.scene_normals_);
     rr_->recognize();
 
-    if(rr_->getSaveHypothesesParam()) {  // we have to do the correspondence grouping ourselve [Faeulhammer et al 2015, ICRA paper]
+    // we have to do the correspondence grouping ourselve
+    // [Faeulhammer et al 2015, ICRA paper]
+    if(rr_->getSaveHypothesesParam())
+    {
         rr_->getSavedHypotheses(v.hypotheses_);
         rr_->getKeypointCloud(v.scene_kp_);
         rr_->getKeyPointNormals(v.scene_kp_normals_);
@@ -357,7 +371,8 @@ MultiviewRecognizer<PointT>::recognize ()
         scene_kp_normals_ = *v.scene_kp_normals_;
         obj_hypotheses_ = v.hypotheses_;
 
-        for (const auto &w_m : views_) {   // merge feature correspondences from other views
+        // merge feature correspondences from other views
+        for (const auto &w_m : views_) {
             const View<PointT> &w = w_m.second;
             if (w.id_ == v.id_)
                 continue;
@@ -370,7 +385,9 @@ MultiviewRecognizer<PointT>::recognize ()
             transformNormals(*w.scene_kp_normals_, scene_kp_normals, w_tf);
 
             for (const auto &oh_remote_m : w.hypotheses_) {
-                ObjectHypothesis<PointT> oh_remote = oh_remote_m.second; // copy because we need to update correspondences indices and don't change the original information
+                // copy because we need to update correspondences indices and
+                // don't change the original information
+                ObjectHypothesis<PointT> oh_remote = oh_remote_m.second;
 
                 // check if correspondences for model already exist
                 const std::string &model_name = oh_remote.model_->id_;
@@ -381,11 +398,13 @@ MultiviewRecognizer<PointT>::recognize ()
                 else {  // merge with existing object hypotheses
                     ObjectHypothesis<PointT> &oh_local = oh_local_m->second;
 
-                    // check each new correspondence for duplicate in existing database. If there is a sufficient close keypoint (Euclidean distance and normal dot product), do not add another one
+                    // check each new correspondence for duplicate in existing
+                    // database. If there is a sufficient close keypoint
+                    // (Euclidean distance and normal dot product), do not add another one
                     size_t new_corr = oh_remote.model_scene_corresp_.size();
                     std::vector<bool> is_kept(new_corr, true);
 
-                    #pragma omp parallel for
+#pragma omp parallel for
                     for (size_t c_id=0; c_id<new_corr; c_id++)  {
                         const pcl::Correspondence &c_new = oh_remote.model_scene_corresp_[c_id];
                         const PointT &m_kp_new = oh_remote.model_->keypoints_->points[ c_new.index_query ];
@@ -400,9 +419,9 @@ MultiviewRecognizer<PointT>::recognize ()
                             float squaredDistModelKeypoints = pcl::squaredEuclideanDistance(m_kp_new, m_kp_existing);
                             float squaredDistSceneKeypoints = pcl::squaredEuclideanDistance(s_kp_new, s_kp_existing);
 
-                            if( (squaredDistModelKeypoints < param_.distance_same_keypoint_) &&
-                                (squaredDistSceneKeypoints < param_.distance_same_keypoint_) &&
-                                (s_kp_normal_new.getNormalVector3fMap().dot(s_kp_normal_existing.getNormalVector3fMap()) > param_.same_keypoint_dot_product_) ) {
+                            if((squaredDistModelKeypoints < param_.distance_same_keypoint_) &&
+                                    (squaredDistSceneKeypoints < param_.distance_same_keypoint_) &&
+                                    (s_kp_normal_new.getNormalVector3fMap().dot(s_kp_normal_existing.getNormalVector3fMap()) > param_.same_keypoint_dot_product_) ) {
 
                                 is_kept[c_id] = false;
                                 break;
@@ -417,19 +436,20 @@ MultiviewRecognizer<PointT>::recognize ()
                     }
                     oh_remote.model_scene_corresp_.resize(kept);
 
-                    for (auto &corr : oh_remote.model_scene_corresp_)  // add appropriate offset to correspondence index of the scene cloud
-                            corr.index_match += scene_keypoints_.points.size();
+                    // add appropriate offset to correspondence index of the scene cloud
+                    for (auto &corr : oh_remote.model_scene_corresp_)
+                        corr.index_match += scene_keypoints_.points.size();
                 }
             }
             scene_keypoints_ += scene_kp_aligned_;
             scene_kp_normals_ += scene_kp_normals;
         }
 
-//        pcl::visualization::PCLVisualizer vis_tmp;
-//        pcl::visualization::PointCloudColorHandlerRGBField<PointT> handler (accum_scene);
-//        vis_tmp.addPointCloud<PointT> (accum_scene, handler, "cloud wo normals");
-//        vis_tmp.addPointCloudNormals<PointT,pcl::Normal>(accum_scene, accum_normals, 10);
-//        vis_tmp.spin();
+        //        pcl::visualization::PCLVisualizer vis_tmp;
+        //        pcl::visualization::PointCloudColorHandlerRGBField<PointT> handler (accum_scene);
+        //        vis_tmp.addPointCloud<PointT> (accum_scene, handler, "cloud wo normals");
+        //        vis_tmp.addPointCloudNormals<PointT,pcl::Normal>(accum_scene, accum_normals, 10);
+        //        vis_tmp.spin();
 
         if(cg_algorithm_) {
             models_.clear();
@@ -443,10 +463,14 @@ MultiviewRecognizer<PointT>::recognize ()
             std::fill(v.model_or_plane_is_verified_.begin(), v.model_or_plane_is_verified_.end(), false);
         }
 
-//        for(size_t m_id=0; m_id<transforms_.size(); m_id++) // transform hypotheses back from global coordinate system to current viewport
-//                transforms_[m_id] = v.absolute_pose_.inverse() * transforms_[m_id];
+        //        for(size_t m_id=0; m_id<transforms_.size(); m_id++) // transform hypotheses back from global coordinate system to current viewport
+        //                transforms_[m_id] = v.absolute_pose_.inverse() * transforms_[m_id];
     }
-    else {  // correspondence grouping is done already (so we get the full models) [Faeulhammer et al 2015, MVA paper]
+    else
+    {
+        // correspondence grouping is done already (so we get the full models)
+        // [Faeulhammer et al 2015, MVA paper]
+
         v.models_ = rr_->getModels();
         v.transforms_ = rr_->getTransforms ();
         v.origin_view_id_.resize(v.models_.size());
@@ -477,7 +501,7 @@ MultiviewRecognizer<PointT>::recognize ()
     boost::shared_ptr<GO3D<PointT, PointT> > hv_algorithm_3d;
 
     if( hv_algorithm_ )
-       hv_algorithm_3d = boost::dynamic_pointer_cast<GO3D<PointT, PointT>> (hv_algorithm_);
+        hv_algorithm_3d = boost::dynamic_pointer_cast<GO3D<PointT, PointT>> (hv_algorithm_);
 
     if ( hv_algorithm_3d ) {
         NguyenNoiseModel<PointT> nm (nm_param_);
@@ -525,7 +549,7 @@ MultiviewRecognizer<PointT>::recognize ()
         //Set the absolute poses so we can go from the global coordinate system to the occlusion clouds
         //TODO: Normals might be a problem!! We need normals from the models and normals from the scene, correctly oriented!
         //right now, all normals from the scene will be oriented towards some weird 0, same for models actually
-   if (views_.size() > 1 ) { // don't do this if there is only one view otherwise point cloud is not kept organized and multi-plane segmentation takes longer
+        if (views_.size() > 1 ) { // don't do this if there is only one view otherwise point cloud is not kept organized and multi-plane segmentation takes longer
             scene_ = octree_cloud;
             scene_normals_ = big_normals;
         }

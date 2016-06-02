@@ -24,7 +24,7 @@ MultiRecognitionPipeline<pcl::PointXYZ>::MultiRecognitionPipeline(int argc, char
 {
     (void) argc;
     (void) argv;
-   std::cerr << "This initialization function is only available for XYZRGB point type!" << std::endl;
+    std::cerr << "This initialization function is only available for XYZRGB point type!" << std::endl;
 }
 
 template<typename PointT>
@@ -55,7 +55,7 @@ MultiRecognitionPipeline<PointT>::MultiRecognitionPipeline(int argc, char **argv
             ("models_dir,m", po::value<std::string>(&models_dir)->required(), "directory containing the object models")
             ("do_sift", po::value<bool>(&do_sift)->default_value(true), "if true, generates hypotheses using SIFT (visual texture information)")
             ("do_shot", po::value<bool>(&do_shot)->default_value(false), "if true, generates hypotheses using SHOT (local geometrical properties)")
-    //                ("do_ourcvfh", po::value<bool>(&do_ourcvfh)->default_value(false), "if true, generates hypotheses using OurCVFH (global geometrical properties, requires segmentation!)")
+            //            ("do_ourcvfh", po::value<bool>(&do_ourcvfh)->default_value(false), "if true, generates hypotheses using OurCVFH (global geometrical properties, requires segmentation!)")
             ("knn_sift", po::value<size_t>(&paramLocalRecSift.knn_)->default_value(paramLocalRecSift.knn_), "sets the number k of matches for each extracted SIFT feature to its k nearest neighbors")
             ("knn_shot", po::value<size_t>(&paramLocalRecShot.knn_)->default_value(paramLocalRecShot.knn_), "sets the number k of matches for each extracted SHOT feature to its k nearest neighbors")
             ("icp_iterations", po::value<int>(&param_.icp_iterations_)->default_value(param_.icp_iterations_), "number of icp iterations. If 0, no pose refinement will be done")
@@ -96,7 +96,7 @@ MultiRecognitionPipeline<PointT>::MultiRecognitionPipeline(int argc, char **argv
             ("hv_use_supervoxels", po::value<bool>(&paramGHV.use_super_voxels_)->default_value(paramGHV.use_super_voxels_), "If true, uses supervoxel clustering to detect smoothness violations")
             ("hv_min_plane_inliers", po::value<size_t>(&paramGHV.min_plane_inliers_)->default_value(paramGHV.min_plane_inliers_), "a planar cluster is only added as plane if it has at least min_plane_inliers_ points")
             ("normal_method,n", po::value<int>(&normal_computation_method)->default_value(normal_computation_method), "chosen normal computation method of the V4R library")
-    ;
+            ;
     po::variables_map vm;
     po::parsed_options parsed = po::command_line_parser(argc, argv).options(desc).allow_unregistered().run();
     po::store(parsed, vm);
@@ -114,19 +114,19 @@ MultiRecognitionPipeline<PointT>::MultiRecognitionPipeline(int argc, char **argv
                 (new RegisteredViewsSource<pcl::PointXYZRGBNormal, pcl::PointXYZRGB, pcl::PointXYZRGB>(resolution));
         src->setPath (models_dir);
         src->generate ();
-    //            src->createVoxelGridAndDistanceTransform(resolution);
+        //            src->createVoxelGridAndDistanceTransform(resolution);
         cast_source = boost::static_pointer_cast<RegisteredViewsSource<pcl::PointXYZRGBNormal, pcl::PointXYZRGB, pcl::PointXYZRGB> > (src);
     }
 
     if (do_sift)
     {
-    #ifdef HAVE_SIFTGPU
-    boost::shared_ptr < SIFTLocalEstimation<pcl::PointXYZRGB> > estimator (new SIFTLocalEstimation<pcl::PointXYZRGB>());
-    boost::shared_ptr < LocalEstimator<pcl::PointXYZRGB> > cast_estimator = boost::dynamic_pointer_cast<SIFTLocalEstimation<pcl::PointXYZRGB> > (estimator);
-    #else
-    boost::shared_ptr < OpenCVSIFTLocalEstimation<pcl::PointXYZRGB> > estimator (new OpenCVSIFTLocalEstimation<pcl::PointXYZRGB>);
-    boost::shared_ptr < LocalEstimator<pcl::PointXYZRGB> > cast_estimator = boost::dynamic_pointer_cast<OpenCVSIFTLocalEstimation<pcl::PointXYZRGB> > (estimator);
-    #endif
+#ifdef HAVE_SIFTGPU
+        boost::shared_ptr < SIFTLocalEstimation<pcl::PointXYZRGB> > estimator (new SIFTLocalEstimation<pcl::PointXYZRGB>());
+        boost::shared_ptr < LocalEstimator<pcl::PointXYZRGB> > cast_estimator = boost::dynamic_pointer_cast<SIFTLocalEstimation<pcl::PointXYZRGB> > (estimator);
+#else
+        boost::shared_ptr < OpenCVSIFTLocalEstimation<pcl::PointXYZRGB> > estimator (new OpenCVSIFTLocalEstimation<pcl::PointXYZRGB>);
+        boost::shared_ptr < LocalEstimator<pcl::PointXYZRGB> > cast_estimator = boost::dynamic_pointer_cast<OpenCVSIFTLocalEstimation<pcl::PointXYZRGB> > (estimator);
+#endif
 
         boost::shared_ptr<LocalRecognitionPipeline<pcl::PointXYZRGB> > sift_r;
         sift_r.reset (new LocalRecognitionPipeline<pcl::PointXYZRGB> (paramLocalRecSift));

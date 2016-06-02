@@ -22,19 +22,26 @@
  ******************************************************************************/
 
 
-#ifndef V4R_SHOT_LOCAL_ESTIMATOR_H_
-#define V4R_SHOT_LOCAL_ESTIMATOR_H_
+#ifndef V4R_ROPS_LOCAL_ESTIMATOR_H_
+#define V4R_ROPS_LOCAL_ESTIMATOR_H_
 
 #include "local_estimator.h"
 #include <v4r/features/types.h>
 #include <v4r/common/normals.h>
-#include <pcl/features/shot.h>
 #include <pcl/io/pcd_io.h>
+
+#include <pcl/features/rops_estimation.h>
+#include <pcl/features/normal_3d_omp.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/kdtree/kdtree_flann.h>
+
+// for fast triangulation
+#include <pcl/surface/gp3.h>
 
 namespace v4r
 {
     template<typename PointT>
-      class V4R_EXPORTS SHOTLocalEstimation : public LocalEstimator<PointT>
+      class V4R_EXPORTS ROPSLocalEstimation : public LocalEstimator<PointT>
       {
 
         typedef typename pcl::PointCloud<PointT>::Ptr PointInTPtr;
@@ -55,7 +62,7 @@ namespace v4r
             {}
         }param_;
 
-        SHOTLocalEstimation (const Parameter &p = Parameter()) : LocalEstimator<PointT>(p)
+        ROPSLocalEstimation (const Parameter &p = Parameter()) : LocalEstimator<PointT>(p)
         {
             this->descr_name_ = "shot";
             param_ = p;
@@ -66,9 +73,9 @@ namespace v4r
           return SHOT;
         }
 
-        bool estimate (const pcl::PointCloud<PointT> & in, 
-                       pcl::PointCloud<PointT> & processed, 
-                       pcl::PointCloud<PointT> & keypoints, 
+        bool estimate (const pcl::PointCloud<PointT> & in,
+                       pcl::PointCloud<PointT> & processed,
+                       pcl::PointCloud<PointT> & keypoints,
                        std::vector<std::vector<float> > & signatures)
         {
             if (!keypoint_extractor_.size() || in.points.empty())
@@ -107,18 +114,51 @@ namespace v4r
             }
 
           //compute signatures
-          typedef typename pcl::SHOTEstimation<PointT, pcl::Normal, pcl::SHOT352> SHOTEstimator;
-          typename pcl::search::KdTree<PointT>::Ptr tree (new pcl::search::KdTree<PointT>);
+            //------------------------------------------------------------
+            // Triangulation
+            float triangulation_search_radius = 10;
+            float triangulation_mu = 2.5;
+            int triangulation_max_knn = 100;
+            float triangulation_max_surface_angle = M_PI/4.0;
+            float triangulation_max_angle = 2*M_PI/3.0;
+            float triangulation_min_angle = M_PI/9.0;
+            bool triangulation_normal_consistency = false;
+            pcl::GreedyProjectionTriangulation<pcl::PointNormal> gp3;
+            pcl::PolygonMesh keypoints_triangles;
+            pcl::search::KdTree<pcl::PointNormal>::Ptr kdtree_2(new pcl::search::KdTree<pcl::PointNormal>);
+            kdtree_2->setInputCloud(kps_with_normals);
+            gp3.setInputCloud(kps_with_normals);
+            gp3.setSearchMethod(kdtree_2);
+            gp3.setMaximumAngle(triangulation_max_angle);
+            gp3.setMinimumAngle(triangulation_min_angle);
+            gp3.setMaximumNearestNeighbors(triangulation_max_knn);
+            gp3.setMaximumSurfaceAngle(triangulation_max_surface_angle);
+            gp3.setMu(triangulation_mu);
+            gp3.setSearchRadius(triangulation_search_radius);
+            gp3.setNormalConsistency(triangulation_normal_consistency);
+            gp3.reconstruct(keypoints_triangles);
 
-          pcl::PointCloud<pcl::SHOT352>::Ptr shots (new pcl::PointCloud<pcl::SHOT352>);
-          SHOTEstimator shot_estimate;
-          shot_estimate.setSearchMethod (tree);
-          shot_estimate.setInputCloud (keypoints.makeShared());
-          shot_estimate.setSearchSurface(processed.makeShared());
-          shot_estimate.setInputNormals (normals_);
-          shot_estimate.setRadiusSearch (param_.support_radius_);
-          shot_estimate.compute (*shots);
-          signatures.resize (shots->points.size (), std::vector<float>(352));
+            //------------------------------------------------------------
+            // estimate rops features
+            float support_radius = 15;
+            unsigned int number_of_partition_bins = 50;
+            unsigned int number_of_rotations = 25;
+
+            pcl::search::KdTree<pcl::PointXYZ>::Ptr search_method (new pcl::search::KdTree<pcl::PointXYZ>);
+            search_method->setInputCloud (cloud);
+
+            pcl::ROPSEstimation <pcl::PointXYZ, pcl::Histogram135> feature_estimator;
+            feature_estimator.setSearchMethod (search_method);
+            feature_estimator.setSearchSurface (cloud);
+            feature_estimator.setInputCloud (keypoints);
+            feature_estimator.setTriangles (keypoints_triangles.polygons);
+            feature_estimator.setRadiusSearch (support_radius);
+            feature_estimator.setNumberOfPartitionBins (number_of_partition_bins);
+            feature_estimator.setNumberOfRotations (number_of_rotations);
+            feature_estimator.setSupportRadius (support_radius);
+
+            feature_estimator.compute (histograms);
+
 
           int size_feat = 352;
 
@@ -138,4 +178,4 @@ namespace v4r
       };
 }
 
-#endif /* V4R_SHOT_LOCAL_ESTIMATOR_H_ */
+#endif /* V4R_ROPS_LOCAL_ESTIMATOR_H_ */

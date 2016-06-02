@@ -111,7 +111,7 @@ V4R_OPTION(BUILD_v4r_apps           "Build utility applications (used for exampl
 V4R_OPTION(BUILD_DOCS               "Create build rules for V4R Documentation"    ON  IF NOT WINRT)
 V4R_OPTION(BUILD_EXAMPLES           "Build all examples"                          ON )
 V4R_OPTION(BUILD_EVALUATION_TOOLS   "Build all evaluation tools"                          OFF )
-V4R_OPTION(BUILD_UTILITY_TOOLS      "Build all utility tools"                          ON )
+V4R_OPTION(BUILD_UTILITY_TOOLS      "Build all utility tools"                          OFF )
 #V4R_OPTION(BUILD_ICRA16_TOOLS       "Build evaluations for RA-L Paper 2016, Faeulhammer"    OFF )
 V4R_OPTION(BUILD_PACKAGE            "Enables 'make package_source' command"       ON  IF NOT WINRT)
 V4R_OPTION(BUILD_PERF_TESTS         "Build performance tests"                     ON  IF (NOT IOS) )
@@ -773,7 +773,8 @@ status("")
 
 v4r_finalize_status()
 
-message("opecv include dir: " ${OpenCV_INCLUDE_DIRS})
+message("opecv include dir: " "${OpenCV_INCLUDE_DIRS}")
+message("pcl include dir: " "${PCL_INCLUDE_DIRS}")
 
 # ----------------------------------------------------------------------------
 # Warn in the case of in-source build

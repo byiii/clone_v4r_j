@@ -67,6 +67,8 @@ Recognizer<PointT>::hypothesisVerification ()
         return;
     }
 
+    //------------------------------------------------------------
+    // prepare transformed models with transformed normals
 #pragma omp parallel for schedule(dynamic)
     for(size_t i=0; i<models_.size(); i++)
     {
@@ -80,13 +82,16 @@ Recognizer<PointT>::hypothesisVerification ()
         aligned_model_normals[i] = aligned_normal_tmp;
     }
 
-
+    //------------------------------------------------------------
+    // set up hv object and
+    // set input for the hypothesis verification functionality
     boost::shared_ptr<GHV<PointT, PointT> > hv_algorithm_ghv;
     if( hv_algorithm_ )
         hv_algorithm_ghv = boost::dynamic_pointer_cast<GHV<PointT, PointT>> (hv_algorithm_);
 
     hv_algorithm_->setOcclusionCloud (scene_);
     hv_algorithm_->setSceneCloud (scene_);
+    // do occlusion reasoning
     hv_algorithm_->addModels (aligned_models, true);
 
     if (hv_algorithm_->getRequiresNormals ())
@@ -96,8 +101,10 @@ Recognizer<PointT>::hypothesisVerification ()
         hv_algorithm_ghv->setRequiresNormals(false);
         hv_algorithm_ghv->setNormalsForClutterTerm(scene_normals_);
 
+        // do plane segmentation
         if( hv_algorithm_ghv->param_.add_planes_ ) {
             if( hv_algorithm_ghv->param_.plane_method_ == 0 ) {
+                // use multiplane segmentation
                 MultiPlaneSegmentation<PointT> mps;
                 mps.setInputCloud( scene_ );
                 mps.setMinPlaneInliers( hv_algorithm_ghv->param_.min_plane_inliers_ );
@@ -108,6 +115,7 @@ Recognizer<PointT>::hypothesisVerification ()
                 planes_ = mps.getModels();
             }
             else {
+                // segment places from normal clusters
                 typename ClusterNormalsToPlanesPCL<PointT>::Parameter p_param;
                 p_param.inlDistSmooth = 0.05f;
                 p_param.minPoints = hv_algorithm_ghv->param_.min_plane_inliers_;
@@ -124,6 +132,8 @@ Recognizer<PointT>::hypothesisVerification ()
 
     }
 
+    //------------------------------------------------------------
+    // perform hypotheses verification
     hv_algorithm_->verify ();
     hv_algorithm_->getMask (model_or_plane_is_verified_);
 }
@@ -139,6 +149,7 @@ Recognizer<PointT>::poseRefinement()
     voxel_grid_icp.setLeafSize (param_.voxel_size_icp_, param_.voxel_size_icp_, param_.voxel_size_icp_);
     voxel_grid_icp.filter (*scene_voxelized);
 
+    //------------------------------------------------------------
     switch (param_.icp_type_)
     {
     case 0:
@@ -146,19 +157,24 @@ Recognizer<PointT>::poseRefinement()
 #pragma omp parallel for schedule(dynamic,1) num_threads(omp_get_num_procs())
         for (size_t i = 0; i < models_.size (); i++)
         {
-//            std::cout << "Doing ICP (type 0) for model " << models_[i]->id_ << " (" << i << " / " << models_.size() << ")" << std::endl;
+            //            std::cout << "Doing ICP (type 0) for model " << models_[i]->id_
+            //                      << " (" << i << " / " << models_.size() << ")" << std::endl;
+
+            // prepare transformed model
             ConstPointTPtr model_cloud = models_[i]->getAssembled ( param_.resolution_mm_model_assembly_ );
             PointTPtr model_aligned (new pcl::PointCloud<PointT>);
             pcl::transformPointCloud (*model_cloud, *model_aligned, transforms_[i]);
 
+            // generate correspondence rejector
             typename pcl::registration::CorrespondenceRejectorSampleConsensus<PointT>::Ptr
                     rej (new pcl::registration::CorrespondenceRejectorSampleConsensus<PointT> ());
-
+            // set parameters
             rej->setInputTarget (scene_voxelized);
             rej->setMaximumIterations (1000);
             rej->setInlierThreshold (0.005f);
             rej->setInputSource (model_aligned);
 
+            // generate icp registration object and set parameters
             pcl::IterativeClosestPoint<PointT, PointT> reg;
             reg.addCorrespondenceRejector (rej);
             reg.setInputTarget (scene_voxelized);
@@ -166,9 +182,10 @@ Recognizer<PointT>::poseRefinement()
             reg.setMaximumIterations (param_.icp_iterations_);
             reg.setMaxCorrespondenceDistance (param_.max_corr_distance_);
 
+            // perform icp alignment
             typename pcl::PointCloud<PointT>::Ptr output_ (new pcl::PointCloud<PointT> ());
             reg.align (*output_);
-
+            // update transformation
             Eigen::Matrix4f icp_trans = reg.getFinalTransformation ();
             transforms_[i] = icp_trans * transforms_[i];
         }
@@ -179,25 +196,30 @@ Recognizer<PointT>::poseRefinement()
 #pragma omp parallel for schedule(dynamic,1) num_threads(omp_get_num_procs())
         for (size_t i = 0; i < models_.size(); i++)
         {
-//            std::cout << "Doing ICP for model " << models_[i]->id_ << " (" << i << " / " << models_.size() << ")" << std::endl;
+            //            std::cout << "Doing ICP for model " << models_[i]->id_ << " (" << i
+            //                      << " / " << models_.size() << ")" << std::endl;
             typename VoxelBasedCorrespondenceEstimation<PointT, PointT>::Ptr
                     est (new VoxelBasedCorrespondenceEstimation<PointT, PointT> ());
 
             typename pcl::registration::CorrespondenceRejectorSampleConsensus<PointT>::Ptr
                     rej (new pcl::registration::CorrespondenceRejectorSampleConsensus<PointT> ());
 
+            // transformation to transform the scene to the model
             Eigen::Matrix4f scene_to_model_trans = transforms_[i].inverse ();
             boost::shared_ptr<distance_field::PropagationDistanceField<PointT> > dt;
             models_[i]->getVGDT (dt);
 
             PointTPtr model_aligned (new pcl::PointCloud<PointT>);
             PointTPtr scene_voxelized_icp_cropped (new pcl::PointCloud<PointT>);
+            // get transformed model
             typename pcl::PointCloud<PointT>::ConstPtr cloud;
             dt->getInputCloud(cloud);
             model_aligned.reset(new pcl::PointCloud<PointT>(*cloud));
 
+            // transform scene
             pcl::transformPointCloud (*scene_voxelized, *scene_voxelized_icp_cropped, scene_to_model_trans);
 
+            // prepare crop position
             PointT minPoint, maxPoint;
             pcl::getMinMax3D(*cloud, minPoint, maxPoint);
             minPoint.x -= param_.max_corr_distance_;
@@ -208,22 +230,26 @@ Recognizer<PointT>::poseRefinement()
             maxPoint.y += param_.max_corr_distance_;
             maxPoint.z += param_.max_corr_distance_;
 
+            // crop part of the scene out
             pcl::CropBox<PointT> cropFilter;
             cropFilter.setInputCloud (scene_voxelized_icp_cropped);
             cropFilter.setMin(minPoint.getVector4fMap());
             cropFilter.setMax(maxPoint.getVector4fMap());
             cropFilter.filter (*scene_voxelized_icp_cropped);
 
+            // estimate correspondences
             est->setVoxelRepresentationTarget (dt);
             est->setInputSource (scene_voxelized_icp_cropped);
             est->setInputTarget (model_aligned);
             est->setMaxCorrespondenceDistance (param_.max_corr_distance_);
 
+            // reject correspondences
             rej->setInputSource (scene_voxelized_icp_cropped);
             rej->setInputTarget (model_aligned);
             rej->setMaximumIterations (1000);
             rej->setInlierThreshold (0.005f);
 
+            // generate icp object and set parameters
             pcl::IterativeClosestPoint<PointT, PointT, float> reg;
             reg.setCorrespondenceEstimation (est);
             reg.addCorrespondenceRejector (rej);
@@ -233,21 +259,26 @@ Recognizer<PointT>::poseRefinement()
             reg.setEuclideanFitnessEpsilon(1e-5);
             reg.setTransformationEpsilon(0.001f * 0.001f);
 
+            // set icp convergence criteria
             pcl::registration::DefaultConvergenceCriteria<float>::Ptr convergence_criteria;
             convergence_criteria = reg.getConvergeCriteria();
             convergence_criteria->setAbsoluteMSE(1e-12);
             convergence_criteria->setMaximumIterationsSimilarTransforms(15);
             convergence_criteria->setFailureAfterMaximumIterations(false);
 
+            // perform icp registration
             typename pcl::PointCloud<PointT>::Ptr output_ (new pcl::PointCloud<PointT> ());
             reg.align (*output_);
 
-            std::cout << "ICP: iterations: " << param_.icp_iterations_ << ", fitness_score: " << reg.getFitnessScore() << std::endl;
+            std::cout << "ICP: iterations: " << param_.icp_iterations_
+                      << ", fitness_score: " << reg.getFitnessScore() << std::endl;
 
+            // update transformation
             Eigen::Matrix4f icp_trans;
             icp_trans = reg.getFinalTransformation () * scene_to_model_trans;
             transforms_[i] = icp_trans.inverse ();
-            //        std::cout << "Done ICP for model  " << models_[i]->id_ << " (" << i << " / " << models_.size() << ")" << std::endl;
+            //            std::cout << "Done ICP for model  " << models_[i]->id_ << " (" << i
+            //                      << " / " << models_.size() << ")" << std::endl;
 
         }
     }

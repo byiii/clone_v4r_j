@@ -6,7 +6,8 @@ namespace v4r
 
 template<typename ModelT, typename SceneT>
 void
-HypothesisVerification<ModelT, SceneT>::addModels (std::vector<typename pcl::PointCloud<ModelT>::ConstPtr> & models, bool occlusion_reasoning)
+HypothesisVerification<ModelT, SceneT>::addModels (std::vector<typename pcl::PointCloud<ModelT>::ConstPtr> & models,
+                                                   bool occlusion_reasoning)
 {
   mask_.clear();
   complete_models_ = models;
@@ -23,7 +24,8 @@ HypothesisVerification<ModelT, SceneT>::addModels (std::vector<typename pcl::Poi
   {
     //we need to reason about occlusions before setting the model
     if (!scene_cloud_)
-      throw std::runtime_error("setSceneCloud should be called before adding the model if reasoning about occlusions...");
+      throw std::runtime_error("setSceneCloud should be called before adding "
+                               "the model if reasoning about occlusions...");
 
     if(!occlusion_cloud_set_) {
         PCL_WARN("Occlusion cloud not set, using scene_cloud instead...\n");
@@ -31,7 +33,9 @@ HypothesisVerification<ModelT, SceneT>::addModels (std::vector<typename pcl::Poi
     }
 
 
-    ZBuffering<ModelT, SceneT> zbuffer_scene (param_.zbuffer_scene_resolution_, param_.zbuffer_scene_resolution_, 1.f);
+    ZBuffering<ModelT, SceneT> zbuffer_scene (param_.zbuffer_scene_resolution_,
+                                              param_.zbuffer_scene_resolution_,
+                                              1.f);
     if (!occlusion_cloud_->isOrganized ())
     {
         PCL_WARN("Scene not organized... filtering using computed depth buffer\n");
@@ -47,7 +51,9 @@ HypothesisVerification<ModelT, SceneT>::addModels (std::vector<typename pcl::Poi
       //self-occlusions
       typename pcl::PointCloud<ModelT>::Ptr filter_self_occ (new pcl::PointCloud<ModelT> ());
       typename pcl::PointCloud<ModelT>::Ptr filter_self_occ_and_scene (new pcl::PointCloud<ModelT> ());
-      ZBuffering<ModelT, SceneT> zbuffer_self_occlusion (param_.zbuffer_self_occlusion_resolution_, param_.zbuffer_self_occlusion_resolution_, 1.f);
+      ZBuffering<ModelT, SceneT> zbuffer_self_occlusion (param_.zbuffer_self_occlusion_resolution_,
+                                                         param_.zbuffer_self_occlusion_resolution_,
+                                                         1.f);
       zbuffer_self_occlusion.computeDepthMap (*models[i], true);
 
       std::vector<int> self_occlusion_indices;
@@ -58,7 +64,11 @@ HypothesisVerification<ModelT, SceneT>::addModels (std::vector<typename pcl::Poi
       std::vector<int> indices_cloud_occlusion;
       if (occlusion_cloud_->isOrganized ())
       {
-        filter_self_occ_and_scene = filter<ModelT,SceneT> (*occlusion_cloud_, *filter_self_occ, param_.focal_length_, param_.occlusion_thres_, indices_cloud_occlusion);
+        filter_self_occ_and_scene = filter<ModelT,SceneT> (*occlusion_cloud_,
+                                                           *filter_self_occ,
+                                                           param_.focal_length_,
+                                                           param_.occlusion_thres_,
+                                                           indices_cloud_occlusion);
         visible_indices_[i].resize(filter_self_occ_and_scene->points.size());
 
         for(size_t k=0; k < indices_cloud_occlusion.size(); k++)

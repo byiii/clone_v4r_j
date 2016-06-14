@@ -43,6 +43,8 @@ main (int argc, char ** argv)
     try { po::notify(vm); }
     catch(std::exception& e) { std::cerr << "Error: " << e.what() << std::endl << std::endl << desc << std::endl;  }
 
+    pcl::console::setVerbosityLevel(pcl::console::L_ERROR);
+
     v4r::MultiRecognitionPipeline<PointT> r(argc, argv);
 
     // ----------- TEST ----------

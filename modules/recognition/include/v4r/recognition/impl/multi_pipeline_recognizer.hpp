@@ -96,7 +96,7 @@ MultiRecognitionPipeline<PointT>::mergeStuff( std::map<std::string, ObjectHypoth
     omp_set_lock(&rec_lock_);
     models_.insert(models_.end(), models.begin(), models.end());
     transforms_.insert(transforms_.end(), transforms.begin(), transforms.end());
-//            input_icp_indices.insert(input_icp_indices.end(), segmentation_indices_[c].indices.begin(), segmentation_indices_[c].indices.end());
+    //            input_icp_indices.insert(input_icp_indices.end(), segmentation_indices_[c].indices.begin(), segmentation_indices_[c].indices.end());
 
     for (auto &oh : oh_m) {
         for (auto &corr : oh.second.model_scene_corresp_) {  // add appropriate offset to correspondence index of the scene cloud
@@ -108,8 +108,8 @@ MultiRecognitionPipeline<PointT>::mergeStuff( std::map<std::string, ObjectHypoth
             obj_hypotheses_.insert(oh);//std::pair<std::string, ObjectHypothesis<PointT> >(id, it_tmp->second));
         else
             it_mp_oh->second.model_scene_corresp_.insert(  it_mp_oh->second.model_scene_corresp_.  end(),
-                                                                   oh.second.model_scene_corresp_.begin(),
-                                                                   oh.second.model_scene_corresp_.  end() );
+                                                           oh.second.model_scene_corresp_.begin(),
+                                                           oh.second.model_scene_corresp_.  end() );
     }
 
     *scene_keypoints_ += scene_kps;
@@ -127,7 +127,7 @@ MultiRecognitionPipeline<PointT>::recognize()
 {
     models_.clear();
     transforms_.clear();
-//    std::vector<int> input_icp_indices;
+    //    std::vector<int> input_icp_indices;
     obj_hypotheses_.clear();
     scene_keypoints_.reset(new pcl::PointCloud<PointT>);
     scene_kp_normals_.reset(new pcl::PointCloud<pcl::Normal>);
@@ -167,8 +167,8 @@ MultiRecognitionPipeline<PointT>::recognize()
         callIndiviualRecognizer(*rec_siftgpu);
 
 #pragma omp for schedule(dynamic)
-    for(size_t r_id=0; r_id < recognizer_without_siftgpu.size(); r_id++)
-        callIndiviualRecognizer(*recognizer_without_siftgpu[r_id]);
+        for(size_t r_id=0; r_id < recognizer_without_siftgpu.size(); r_id++)
+            callIndiviualRecognizer(*recognizer_without_siftgpu[r_id]);
 
     }
     omp_destroy_lock(&rec_lock_);
@@ -277,8 +277,17 @@ void MultiRecognitionPipeline<PointT>::correspondenceGrouping ()
             }
         }
 
-        std::cout << "Merged " << corresp_clusters.size() << " clusters into " << new_transforms.size() << " clusters. Total correspondences: " << oh.model_scene_corresp_.size () << " " << oh.model_->id_ << std::endl;
-
+        std::cout << "Merged " << corresp_clusters.size()
+                  << " clusters into " << new_transforms.size()
+                  << " clusters. Total correspondences: "
+                  << oh.model_scene_corresp_.size () << " " << oh.model_->id_ << std::endl;
+        for(size_t i=0; i<corresp_clusters.size(); ++i)
+        {
+            std::cout << "cluster " << i+1
+                      << " contains " << corresp_clusters[i].size()
+                      << " correspondences." << std::endl;
+        }
+        std::cout << std::endl;
         //        oh.visualize(*scene_);
     }
 

@@ -38,21 +38,22 @@ namespace v4r{
 template<typename PointT>
 class V4R_EXPORTS ObjectHypothesis
 {
-  typedef Model<PointT> ModelT;
-  typedef boost::shared_ptr<ModelT> ModelTPtr;
+    typedef Model<PointT> ModelT;
+    typedef boost::shared_ptr<ModelT> ModelTPtr;
 
-  private:
+private:
     mutable boost::shared_ptr<pcl::visualization::PCLVisualizer> vis_;
     int vp1_;
 
-  public:
+public:
     ModelTPtr model_;
 
     ObjectHypothesis()
     {
     }
 
-    pcl::Correspondences model_scene_corresp_; //indices between model keypoints (index query) and scene cloud (index match)
+    //indices between model keypoints (index query) and scene cloud (index match)
+    pcl::Correspondences model_scene_corresp_;
     std::vector<int> indices_to_flann_models_;
 
     void visualize(const typename pcl::PointCloud<PointT> & scene_kp) const;
@@ -70,7 +71,6 @@ class V4R_EXPORTS ObjectHypothesis
     {
         return (i.distance < j.distance);
     }
-
 
     typedef boost::shared_ptr<ObjectHypothesis<PointT> > Ptr;
     typedef boost::shared_ptr<const ObjectHypothesis<PointT> > ConstPtr;

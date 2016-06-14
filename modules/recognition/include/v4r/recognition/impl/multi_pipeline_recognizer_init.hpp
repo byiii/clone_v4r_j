@@ -33,7 +33,7 @@ MultiRecognitionPipeline<PointT>::MultiRecognitionPipeline(int argc, char **argv
     bool do_sift;
     bool do_shot;
     double chop_z = std::numeric_limits<double>::max();
-    float resolution = 0.005f;
+    float resolution = 0.01f;
     std::string models_dir;
 
     typename GHV<pcl::PointXYZRGB, pcl::PointXYZRGB>::Parameter paramGHV;
@@ -142,10 +142,10 @@ MultiRecognitionPipeline<PointT>::MultiRecognitionPipeline(int argc, char **argv
     if (do_shot)
     {
         boost::shared_ptr<UniformSamplingExtractor<pcl::PointXYZRGB> > uniform_kp_extractor ( new UniformSamplingExtractor<pcl::PointXYZRGB>);
-        uniform_kp_extractor->setSamplingDensity (0.01f);
+        uniform_kp_extractor->setSamplingDensity (0.02f);
         uniform_kp_extractor->setFilterPlanar (true);
         uniform_kp_extractor->setThresholdPlanar(0.1);
-        uniform_kp_extractor->setMaxDistance( 100.0 ); // for training we want to consider all points (except nan values)
+        uniform_kp_extractor->setMaxDistance( 10.0 ); // for training we want to consider all points (except nan values)
 
         boost::shared_ptr<KeypointExtractor<pcl::PointXYZRGB> > keypoint_extractor = boost::static_pointer_cast<KeypointExtractor<pcl::PointXYZRGB> > (uniform_kp_extractor);
         boost::shared_ptr<SHOTLocalEstimationOMP<pcl::PointXYZRGB> > estimator (new SHOTLocalEstimationOMP<pcl::PointXYZRGB >(paramLocalEstimator));

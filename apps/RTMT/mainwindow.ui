@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>1100</width>
-    <height>551</height>
+    <height>569</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -80,8 +80,8 @@
      <rect>
       <x>653</x>
       <y>410</y>
-      <width>16</width>
-      <height>62</height>
+      <width>41</width>
+      <height>64</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout">
@@ -113,7 +113,7 @@
       <x>707</x>
       <y>346</y>
       <width>166</width>
-      <height>136</height>
+      <height>141</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -191,7 +191,7 @@
       <x>660</x>
       <y>20</y>
       <width>331</width>
-      <height>95</height>
+      <height>98</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -280,10 +280,17 @@
       <x>660</x>
       <y>133</y>
       <width>421</width>
-      <height>91</height>
+      <height>98</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,0,0,0,0">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Object</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="1">
       <widget class="QPushButton" name="SegmentObject">
        <property name="text">
@@ -318,10 +325,20 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_5">
+     <item row="1" column="3">
+      <widget class="QPushButton" name="OptimizeObject">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="text">
-        <string>Object</string>
+        <string>Optimize</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="SessionAdd">
+       <property name="text">
+        <string>Add</string>
        </property>
       </widget>
      </item>
@@ -329,6 +346,13 @@
       <widget class="QLabel" name="label_7">
        <property name="text">
         <string>Session</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="2">
+      <widget class="QPushButton" name="SessionAlign">
+       <property name="text">
+        <string>Align</string>
        </property>
       </widget>
      </item>
@@ -342,27 +366,6 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
-      <widget class="QPushButton" name="SessionAdd">
-       <property name="text">
-        <string>Add</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <widget class="QPushButton" name="SessionAlign">
-       <property name="text">
-        <string>Align</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="4">
-      <widget class="QPushButton" name="SessionClear">
-       <property name="text">
-        <string>Clear</string>
-       </property>
-      </widget>
-     </item>
      <item row="2" column="3">
       <widget class="QPushButton" name="SessionOptimize">
        <property name="text">
@@ -370,13 +373,10 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="3">
-      <widget class="QPushButton" name="OptimizeObject">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
+     <item row="2" column="4">
+      <widget class="QPushButton" name="SessionClear">
        <property name="text">
-        <string>Optimize</string>
+        <string>Clear</string>
        </property>
       </widget>
      </item>
@@ -388,7 +388,7 @@
       <x>660</x>
       <y>254</y>
       <width>251</width>
-      <height>29</height>
+      <height>30</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
@@ -426,6 +426,7 @@
    <zorder>layoutWidget4</zorder>
    <zorder>layoutWidget5</zorder>
    <zorder>ResetView</zorder>
+   <zorder>SessionClear</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -433,7 +434,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>25</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

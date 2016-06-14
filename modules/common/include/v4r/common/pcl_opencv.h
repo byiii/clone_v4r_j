@@ -24,6 +24,7 @@
 
 #include <pcl/common/common.h>
 #include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
 #include <v4r/core/macros.h>
 
 #ifndef V4R_PCL_OPENCV_H_
@@ -74,6 +75,9 @@ namespace v4r
         cv::Mat cropped_image = image(cv::Rect(min_u, min_v, max_u - min_u, max_v - min_v));
         image = cropped_image.clone();
     }
+
+//    cv::imshow("image", image);
+//    cv::waitKey(0);
 
     return image;
   }
@@ -248,7 +252,7 @@ namespace v4r
           }
       }
       return ConvertPCLCloud2Image (organized_cloud, crop);
-  }  
+  }
 
    /**
      * @brief computes the depth map of a point cloud with fixed size output

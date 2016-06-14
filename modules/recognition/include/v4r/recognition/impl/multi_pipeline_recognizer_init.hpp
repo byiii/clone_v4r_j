@@ -11,6 +11,7 @@
 
 #ifdef HAVE_SIFTGPU
 #include <v4r/features/sift_local_estimator.h>
+//#include <v4r/features/opencv_sift_local_estimator.h>
 #else
 #include <v4r/features/opencv_sift_local_estimator.h>
 #endif
@@ -120,9 +121,12 @@ MultiRecognitionPipeline<PointT>::MultiRecognitionPipeline(int argc, char **argv
 
     if (do_sift)
     {
+
 #ifdef HAVE_SIFTGPU
         boost::shared_ptr < SIFTLocalEstimation<pcl::PointXYZRGB> > estimator (new SIFTLocalEstimation<pcl::PointXYZRGB>());
         boost::shared_ptr < LocalEstimator<pcl::PointXYZRGB> > cast_estimator = boost::dynamic_pointer_cast<SIFTLocalEstimation<pcl::PointXYZRGB> > (estimator);
+//        boost::shared_ptr < OpenCVSIFTLocalEstimation<pcl::PointXYZRGB> > estimator (new OpenCVSIFTLocalEstimation<pcl::PointXYZRGB>);
+//        boost::shared_ptr < LocalEstimator<pcl::PointXYZRGB> > cast_estimator = boost::dynamic_pointer_cast<OpenCVSIFTLocalEstimation<pcl::PointXYZRGB> > (estimator);
 #else
         boost::shared_ptr < OpenCVSIFTLocalEstimation<pcl::PointXYZRGB> > estimator (new OpenCVSIFTLocalEstimation<pcl::PointXYZRGB>);
         boost::shared_ptr < LocalEstimator<pcl::PointXYZRGB> > cast_estimator = boost::dynamic_pointer_cast<OpenCVSIFTLocalEstimation<pcl::PointXYZRGB> > (estimator);

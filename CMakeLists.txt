@@ -93,7 +93,7 @@ V4R_OPTION(WITH_OPENCLAMDFFT   "Include AMD OpenCL FFT library support"      ON 
 V4R_OPTION(WITH_OPENCLAMDBLAS  "Include AMD OpenCL BLAS library support"     ON   IF (NOT ANDROID AND NOT IOS AND NOT WINRT) )
 V4R_OPTION(WITH_OPENCV         "Include OpenCV support"                      ON)
 V4R_OPTION(WITH_OPENNI2        "Include OpenNI support"                      ON)
-V4R_OPTION(WITH_SIFTGPU        "Include SiftGPU support"                     ON)
+V4R_OPTION(WITH_SIFTGPU        "Include SiftGPU support"                     OFF)
 V4R_OPTION(WITH_METSLIB        "Include METSlib support"                     ON)
 V4R_OPTION(WITH_LIBSVM         "Include LIBSVM support"                      ON)
 V4R_OPTION(WITH_PCL            "Include PCL support"                         ON)
@@ -130,7 +130,7 @@ V4R_OPTION(BUILD_JPEG               "Build libjpeg from source"          WIN32 O
 V4R_OPTION(BUILD_PNG                "Build libpng from source"           WIN32 OR ANDROID OR APPLE )
 V4R_OPTION(BUILD_OPENEXR            "Build openexr from source"          (WIN32 OR ANDROID OR APPLE) AND NOT WINRT)
 V4R_OPTION(BUILD_TBB                "Download and build TBB from source" ANDROID )
-V4R_OPTION(BUILD_SIFTGPU            "Download and build SiftGPU from source" ON)
+V4R_OPTION(BUILD_SIFTGPU            "Download and build SiftGPU from source" OFF)
 V4R_OPTION(BUILD_METSLIB            "Download and build METSlib from source" ON)
 V4R_OPTION(BUILD_LIBSVM             "Download and build LIBSVM from source" OFF)
 
